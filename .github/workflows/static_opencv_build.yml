@@ -51,6 +51,9 @@ jobs:
             -DWITH_QT=OFF \
             -DWITH_GTK=OFF \
             -DWITH_V4L=OFF \
+            -DWITH_IPP=ON \
+            -DWITH_ITT=OFF \
+            -DBUILD_IPP_IW=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=${{ env.INSTALL_DIR }}
 
