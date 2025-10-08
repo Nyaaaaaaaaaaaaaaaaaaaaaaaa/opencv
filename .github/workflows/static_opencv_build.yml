@@ -29,45 +29,27 @@ jobs:
           repository: opencv/opencv
           ref: ${{ env.OPENCV_VERSION }} 
 
+      - name: Checkout Build Scripts
+        uses: actions/checkout@v4
+        with:
+          path: build-scripts
+
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake build-essential libssl-dev libtbb-dev
+          sudo apt-get install -y cmake build-essential libssl-dev libtbb-dev libopenexr-dev zip
 
-      - name: Configure CMake for Static Build
+      - name: Build OpenCV
         run: |
-          mkdir build
-          cd build
-          cmake .. \
-            -DBUILD_SHARED_LIBS=OFF \
-            -DBUILD_TESTS=OFF \
-            -DBUILD_PERF_TESTS=OFF \
-            -DBUILD_EXAMPLES=OFF \
-            -DBUILD_DOCS=OFF \
-            -DBUILD_opencv_python2=OFF \
-            -DBUILD_opencv_python3=OFF \
-            -DBUILD_opencv_java=OFF \
-            -DBUILD_opencv_js=OFF \
-            -DWITH_QT=OFF \
-            -DWITH_GTK=OFF \
-            -DWITH_V4L=OFF \
-            -DWITH_IPP=ON \
-            -DWITH_ITT=OFF \
-            -DBUILD_IPP_IW=ON \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=${{ env.INSTALL_DIR }}
+          chmod +x build-scripts/build.sh
+          OPENCV_SOURCE_DIR=${{ github.workspace }}/opencv build-scripts/build.sh
+        env:
+          OPENCV_VERSION: ${{ env.OPENCV_VERSION }}
+          INSTALL_DIR: ${{ env.INSTALL_DIR }}
 
-      - name: Build and Install OpenCV
+      - name: Move Package to Workspace
         run: |
-          cmake --build build -j $(nproc)
-          cmake --install build
-
-      - name: Package Static Libraries for Release
-        run: |
-          cd ${{ env.INSTALL_DIR }}
-          ZIP_FILE=opencv-static-${{ env.OPENCV_VERSION }}-linux-x64.zip
-          zip -r $ZIP_FILE *
-          mv $ZIP_FILE ${{ github.workspace }}/
+          mv ${{ env.INSTALL_DIR }}/opencv-static-${{ env.OPENCV_VERSION }}-linux-x64.zip ${{ github.workspace }}/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
